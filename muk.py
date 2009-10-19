@@ -1,6 +1,5 @@
 import sys,socket,string,os,random,urllib2
-
-
+from re import findall, DOTALL
 
 ############################config
 HOST="poznan.ircnet.pl"
@@ -25,7 +24,14 @@ nic=''
 sss=''
 def say(tekst):
     s.send("PRIVMSG "+KANAL+" :"+ tekst +"\r\n")
-
+def bash():
+    u = urllib2.urlopen('http://bash.org.pl/random/')
+    q = findall('<div class="quote">(.*?)</div>', u.read(), DOTALL)
+    final = q[0].replace('&lt;', '<').replace('&gt;', '>').replace('<br />', '').replace('\n\r','').replace('\t','').replace('\n',' ')
+#    final = q[0].replace('<br />', '').replace('\r','').replace('\t','')
+   
+    print final
+    return final
 
 while 1:
 #nie ruszac: magia :D====================================
@@ -59,6 +65,7 @@ while 1:
             s.send("PONG %s\r\n" % line[1])
 	if (i==40):
 		s.send("JOIN "+KANAL+"\r\n")
+
 	if (sss == ' :muk!'):
 		say("muk, muk! ^^")
 	
@@ -68,32 +75,39 @@ while 1:
 		
 	if (line[1]=='KICK'):
 		s.send("JOIN "+KANAL+"\r\n")
+
 	if (sss == " :!cycat"):
             say(urllib2.urlopen('http://mdoff.110mb.com/quote/?a=r').read())
 
 	if ((sss[0:8] ==" :!cycat") and (len(sss) > 10)):
             urllib2.urlopen('http://mdoff.110mb.com/quote/?a=a&b=' + sss[9:].replace(' ', '%20'))
-#		os.system('curl -s "http://mdoff.110mb.com/quote/?a=a&b=' + sss[9:].replace(' ', '%20')+'"')
             say("muk dodal cycat panie ^^")
+
 	if (sss==' :!ping'):
             say("muk, mu.. ee.. pong! ^^\"")
 
         if (sss==' :!uptime'):
             say(os.popen('uptime').read())
+
         if (sss==' :!sru'):
-           # rul = os.popen('#!/bin/bash \n [ $[ $RANDOM % 6 ] == 0 ] && echo 1 || echo 0').read()
             if (not(random.randint(0, 5))):
                 k='KICK '+KANAL+' :'+ nic+'\r\n'
                 say("jebut!")
                 s.send(k)
             else:
                 say("klik...")
+
         if ( sss==' :muk?'):
             say("muk, muk? >.<")
+
         if ( sss==' :muk.'):
             say("muk, to brzmi dumnie.")
+
         if ( sss==' :!reg'):
             s.send("PRIVMSG NickServ : IDENTIFY "+haslo+"\r\n")
+            
+        if (sss == " :!bash"):
+            say(bash())
 
 
 
