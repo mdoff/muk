@@ -69,7 +69,8 @@ while 1:
 			sss=sss +' ' + line[a]
 			a=a+1
 #========================================================
-	print nic +' : '+ sss
+#	print nic +' : '+ sss + '\n'
+        print string.join(line) +'\n' 
         if(line[0]=="PING"):
             s.send("PONG %s\r\n" % line[1])
 	if (i==40):
@@ -123,5 +124,21 @@ while 1:
                    say('What\'s your question?')
             else:
                    say(ball())
-
+        
+        ii = 0
+        cc = 0
+        gg = 0
+#        print len(sss)
+        while(len(sss) > ii):
+            
+            if(sss[ii:ii+7]=='http://'):
+                cc = ii
+                gg = ii
+                while((cc < len(sss)) and not(sss[cc] == ' ')):
+                          cc = cc+1
+                if not(sss[gg:gg+17] == 'http://www.ircnet'):
+                    say(urllib2.urlopen('http://api.mrte.ch/go.php?action=shorturl&url='+sss[gg:cc]+'&format=text').read())
+                print sss[gg:cc]
+            
+            ii = ii + 1
 
