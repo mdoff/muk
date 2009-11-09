@@ -58,27 +58,40 @@ def log(mesg):
 
         day1 = datetime.datetime.now().strftime("%d")
 
-        if(globals()['day'] == day1):
-            file = open(globals()['fname'],"r+")
-            while(file.readline()):
-                pass
-            nick =  mesg.split("!")[0][1:]
-            if(mesg.split(' ')[1] == 'PART' or mesg.split(' ')[1] == 'QUIT'):
-                file.write(time.strftime("%H:%M -!- <b>") + nick +"</b> [" + mesg.split("!")[1].split(' ')[0] + "] has left <b>" +KANAL +" </b> <br>\n")
-            if(mesg.split(' ')[1] == 'JOIN' ):
-                file.write(time.strftime("%H:%M -!- <b>") + nick +"</b> [" + mesg.split("!")[1].split(' ')[0] + "] has joined <b>" +KANAL +" </b> <br>\n")
+        if not(globals()['day'] == day1):
 
-            sa = mesg.split("PRIVMSG "+KANAL)
-            file.write(time.strftime("%H:%M") +" &lt;<b>" + nick +"</b>&gt; "+sa[1][2:]+"<br>\n")
-#            print time.strftime("%H:%M") +" &lt;<b>" + mesg.split("!")[0][1:]+"</b>&gt; "+sa[1][2:]+"<br>\n"
-            file.close()
-        else:
             globals()['day'] = datetime.datetime.now().strftime("%d")
             globals()['fname']=datetime.datetime.now().strftime("logs/%d-%m-%y.html")
             file = open(fname,"w")
-            sa = mesg.split("PRIVMSG "+KANAL)
-            file.write(time.strftime("%H:%M") +" &lt;<b>" + mesg.split("!")[0][1:]+"</b>&gt; "+sa[1][2:]+"<br>\n")
             file.close()
+
+
+
+        file = open(globals()['fname'],"r+")
+        while(file.readline()):
+            pass
+        nick =  mesg.split("!")[0][1:]
+          
+        if(mesg.split(' ')[1] == 'PART' or mesg.split(' ')[1] == 'QUIT'):
+            file.write(time.strftime("%H:%M -!- <b>") + nick +"</b> [" + mesg.split("!")[1].split(' ')[0] + "] has left <b>" +KANAL +" </b> <br>\n")
+
+
+        if(mesg.split(' ')[1] == 'JOIN' ):
+            file.write(time.strftime("%H:%M -!- <b>") + nick +"</b> [" + mesg.split("!")[1].split(' ')[0] + "] has joined <b>" +KANAL +" </b> <br>\n")
+
+        if(mesg.split(' ')[1] == 'PRIVMSG' ):
+             sa = mesg.split("PRIVMSG "+KANAL)
+             file.write(time.strftime("%H:%M") +" &lt;<b>" + nick +"</b>&gt; "+sa[1][2:]+"<br>\n")
+        
+        if (mesg.split(' ')[1] == 'NICK' ):
+             file.write(time.strftime("%H:%M -!- <b>") + nick +"</b> [" + mesg.split("!")[1].split(' ')[0] + "] is known as <b>" +mesg.split(' ')[2] +" </b> <br>\n")
+
+        if (mesg.split(' ')[1] == 'KICK' ):
+            file.write(time.strftime("%H:%M -!- <b>") + mesg.split(' ')[3] +"</b>  was kicked by <b>" +nick +" </b> <br>\n")
+        if (mesg.split(' ')[1] == 'TOPIC' ):
+            file.write(time.strftime("%H:%M -!- <b>") + nick +"</b>  changed the topic to " +string.join(mesg.split(' ')[3:]) +"<br>\n")
+
+
     except:
 #        print globals()['day']
         pass
