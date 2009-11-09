@@ -1,4 +1,4 @@
-import sys,socket,string,os,random,urllib2
+import sys,socket,string,os,random,urllib2,datetime,time
 from re import findall, DOTALL
 
 ############################config
@@ -14,6 +14,7 @@ haslo = ""
 
 ############################
 
+#tutaj mieszkaja zmienne globalne
 s=socket.socket( )
 s.connect((HOST, PORT))
 s.send("NICK %s\r\n" % NICK)
@@ -22,10 +23,21 @@ i=0
 
 nic=''
 sss=''
-
+day='00'
+#day = datetime.datetime.now().strftime("%d")
+fname = datetime.datetime.now().strftime("logs/%d-%m-%y.html")
 #fukcje bota
+print fname
 def say(tekst):
     s.send("PRIVMSG "+KANAL+" :"+ tekst +"\r\n")
+    file = open(globals()['fname'],"r+")
+    while(file.readline()):
+        pass
+    file.write(time.strftime("%H:%M") +" &lt;<b>" + NICK +"</b>&gt; "+tekst+"<br>\n")
+    file.close()
+            
+
+
 def bash():
     u = urllib2.urlopen('http://bash.org.pl/random/')
     q = findall('<div class="quote">(.*?)</div>', u.read(), DOTALL)
@@ -40,6 +52,36 @@ def ball():
     table = ['As I see it, yes','Reply hazy, try again',' Don\'t count on it',' It is certain','Ask again later','My reply is no',' Most likely','Better not tell you now','My sources say no',' Outlook good','Cannot predict now','Outlook not so good','Signs point to yes','Concentrate and ask again',' Very doubtful','Without a doubt','Yes','Yes - definitely','You may rely on it']
     return table[i]
 
+def log(mesg):
+    
+    try:
+
+        day1 = datetime.datetime.now().strftime("%d")
+
+        if(globals()['day'] == day1):
+            file = open(globals()['fname'],"r+")
+            while(file.readline()):
+                pass
+            nick =  mesg.split("!")[0][1:]
+            if(mesg.split(' ')[1] == 'PART' or mesg.split(' ')[1] == 'QUIT'):
+                file.write(time.strftime("%H:%M -!- <b>") + nick +"</b> [" + mesg.split("!")[1].split(' ')[0] + "] has left <b>" +KANAL +" </b> <br>\n")
+            if(mesg.split(' ')[1] == 'JOIN' ):
+                file.write(time.strftime("%H:%M -!- <b>") + nick +"</b> [" + mesg.split("!")[1].split(' ')[0] + "] has joined <b>" +KANAL +" </b> <br>\n")
+
+            sa = mesg.split("PRIVMSG "+KANAL)
+            file.write(time.strftime("%H:%M") +" &lt;<b>" + nick +"</b>&gt; "+sa[1][2:]+"<br>\n")
+#            print time.strftime("%H:%M") +" &lt;<b>" + mesg.split("!")[0][1:]+"</b>&gt; "+sa[1][2:]+"<br>\n"
+            file.close()
+        else:
+            globals()['day'] = datetime.datetime.now().strftime("%d")
+            globals()['fname']=datetime.datetime.now().strftime("logs/%d-%m-%y.html")
+            file = open(fname,"w")
+            sa = mesg.split("PRIVMSG "+KANAL)
+            file.write(time.strftime("%H:%M") +" &lt;<b>" + mesg.split("!")[0][1:]+"</b>&gt; "+sa[1][2:]+"<br>\n")
+            file.close()
+    except:
+#        print globals()['day']
+        pass
 
 
 while 1:
@@ -70,7 +112,10 @@ while 1:
 			a=a+1
 #========================================================
 #	print nic +' : '+ sss + '\n'
-        print string.join(line) +'\n' 
+        print string.join(line) +'\n'
+        
+        log(string.join(line) +'\n')
+        
         if(line[0]=="PING"):
             s.send("PONG %s\r\n" % line[1])
 	if (i==40):
