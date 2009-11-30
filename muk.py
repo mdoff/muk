@@ -48,7 +48,7 @@ def bash():
     return final
 
 def ball():
-    i = random.randint(0, 19)
+    i = random.randint(0, 18)
     table = ['As I see it, yes','Reply hazy, try again',' Don\'t count on it',' It is certain','Ask again later','My reply is no',' Most likely','Better not tell you now','My sources say no',' Outlook good','Cannot predict now','Outlook not so good','Signs point to yes','Concentrate and ask again',' Very doubtful','Without a doubt','Yes','Yes - definitely','You may rely on it']
     return table[i]
 
@@ -145,10 +145,10 @@ while 1:
 		s.send("JOIN "+KANAL+"\r\n")
 
 	if (sss == " :!cycat"):
-            say(urllib2.urlopen('http://mdoff.110mb.com/quote/?a=r').read())
+            say(urllib2.urlopen('http://quote.mdoff.net/?a=r').read())
 
 	if ((sss[0:8] ==" :!cycat") and (len(sss) > 10)):
-            urllib2.urlopen('http://mdoff.110mb.com/quote/?a=a&b=' + sss[9:].replace(' ', '%20'))
+            urllib2.urlopen('http://quote.mdoff.net/?a=a&b=' + sss[9:].replace(' ', '%20'))
             say("muk dodal cycat panie ^^")
 
 	if (sss==' :!ping'):
