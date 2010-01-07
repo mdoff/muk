@@ -96,6 +96,16 @@ def log(mesg):
 #        print globals()['day']
         pass
 
+def witka(nick):
+    plik = open("witajka","r")
+    tbl = plik.read()
+    tbl = tbl.split('\n')
+    tbl = tbl[0:len(tbl)-1]
+    ran = random.randint(0,len(tbl)-1)
+    
+    say(tbl[ran].replace('nick',nick))
+    print 'ggggggggggggggggggg'
+
 
 while 1:
 #nie ruszac: magia :D====================================
@@ -183,6 +193,14 @@ while 1:
             else:
                    say(ball())
         
+
+        try: 
+            namesss = string.join(line).split("!")[0][1:]
+            if (string.join(line).split(' ')[1] == 'JOIN' and namesss != NICK ):
+                witka(namesss)
+
+        except:
+            pass
         ii = 0
         cc = 0
         gg = 0
