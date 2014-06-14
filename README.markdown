@@ -1,2 +1,4 @@
 ##Say muk!
-just simple irc bot written for my own ;p
+Since last update it's been a while.
+I simplified lots of code, and muk is alive again :) (in python3)
+

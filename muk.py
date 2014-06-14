@@ -1,220 +1,58 @@
-import sys,socket,string,os,random,urllib2,datetime,time
-from re import findall, DOTALL
+import os, socket, mconfig
+import glob
+import importlib.machinery
 
-############################config
-HOST="poznan.ircnet.pl"
-PORT=6667
-NICK="muk-bojowy"
-IDENT="mukbot"
-REALNAME="MukBot"
-readbuffer=""
-KANAL = "#testowy"
-haslo = ""
+HOST=mconfig.HOST
+PORT=mconfig.PORT
+NICK=mconfig.NICK
+IDENT=mconfig.IDENT
+REALNAME=mconfig.REALNAME
+CHANNEL = mconfig.CHANNEL
+PASSWORD = mconfig.PASSWORD
 
+readbuffer=b''
 
-############################
+def connect():
+  s = socket.socket( socket.AF_INET, socket.SOCK_STREAM )
+  s.connect((HOST, PORT))
+  send = "NICK "+NICK+"\r\n"
+  s.send(send.encode())
+  send = "USER %s %s bla :%s\r\n" % (IDENT, HOST, REALNAME)
+  s.send(send.encode())
+  return s
 
-#tutaj mieszkaja zmienne globalne
-s=socket.socket( )
-s.connect((HOST, PORT))
-s.send("NICK %s\r\n" % NICK)
-s.send("USER %s %s bla :%s\r\n" % (IDENT, HOST, REALNAME))
-i=0
-
-nic=''
-sss=''
-day='00'
-#day = datetime.datetime.now().strftime("%d")
-fname = datetime.datetime.now().strftime("logs/%d-%m-%y.html")
-#fukcje bota
-print fname
-def say(tekst):
-    s.send("PRIVMSG "+KANAL+" :"+ tekst +"\r\n")
-    file = open(globals()['fname'],"r+")
-    while(file.readline()):
-        pass
-    file.write(time.strftime("%H:%M") +" &lt;<b>" + NICK +"</b>&gt; "+tekst+"<br>\n")
-    file.close()
-            
-
-
-def bash():
-    u = urllib2.urlopen('http://bash.org.pl/random/')
-    q = findall('<div class="quote">(.*?)</div>', u.read(), DOTALL)
-    final = q[0].replace('&lt;', '<').replace('&gt;', '>').replace('<br />', '').replace('\n\r','').replace('\t','').replace('\n',' ')
-#    final = q[0].replace('<br />', '').replace('\r','').replace('\t','')
-   
-#    print final
-    return final
-
-def ball():
-    i = random.randint(0, 18)
-    table = ['As I see it, yes','Reply hazy, try again',' Don\'t count on it',' It is certain','Ask again later','My reply is no',' Most likely','Better not tell you now','My sources say no',' Outlook good','Cannot predict now','Outlook not so good','Signs point to yes','Concentrate and ask again',' Very doubtful','Without a doubt','Yes','Yes - definitely','You may rely on it']
-    return table[i]
-
-def log(mesg):
-    
+def load_plugins():
+  plugins = []
+  plugin_files = glob.glob(os.path.dirname(__file__)+"plugins/*.py")
+  plug_files = [ os.path.basename(f)[:-3] for f in plugin_files]
+  plugins = []
+  for p in plug_files:
     try:
-
-        day1 = datetime.datetime.now().strftime("%d")
-
-        if not(globals()['day'] == day1):
-
-            globals()['day'] = datetime.datetime.now().strftime("%d")
-            globals()['fname']=datetime.datetime.now().strftime("logs/%d-%m-%y.html")
-            file = open(fname,"w")
-            file.close()
-
-
-
-        file = open(globals()['fname'],"r+")
-        while(file.readline()):
-            pass
-        nick =  mesg.split("!")[0][1:]
-          
-        if(mesg.split(' ')[1] == 'PART' or mesg.split(' ')[1] == 'QUIT'):
-            file.write(time.strftime("%H:%M -!- <b>") + nick +"</b> [" + mesg.split("!")[1].split(' ')[0] + "] has left <b>" +KANAL +" </b> <br>\n")
-
-
-        if(mesg.split(' ')[1] == 'JOIN' ):
-            file.write(time.strftime("%H:%M -!- <b>") + nick +"</b> [" + mesg.split("!")[1].split(' ')[0] + "] has joined <b>" +KANAL +" </b> <br>\n")
-
-        if(mesg.split(' ')[1] == 'PRIVMSG' ):
-             sa = mesg.split("PRIVMSG "+KANAL)
-             file.write(time.strftime("%H:%M") +" &lt;<b>" + nick +"</b>&gt; "+sa[1][2:]+"<br>\n")
-        
-        if (mesg.split(' ')[1] == 'NICK' ):
-             file.write(time.strftime("%H:%M -!- <b>") + nick +"</b> [" + mesg.split("!")[1].split(' ')[0] + "] is known as <b>" +mesg.split(' ')[2] +" </b> <br>\n")
-
-        if (mesg.split(' ')[1] == 'KICK' ):
-            file.write(time.strftime("%H:%M -!- <b>") + mesg.split(' ')[3] +"</b>  was kicked by <b>" +nick +" </b> <br>\n")
-        if (mesg.split(' ')[1] == 'TOPIC' ):
-            file.write(time.strftime("%H:%M -!- <b>") + nick +"</b>  changed the topic to " +string.join(mesg.split(' ')[3:]) +"<br>\n")
-
-
+      loader = importlib.machinery.SourceFileLoader(p, "plugins/"+p+".py")
+      foo = loader.load_module()
+      plugins.append(foo)
     except:
-#        print globals()['day']
-        pass
+      print("ERROR in module: "+p)
+  return plugins
 
-def witka(nick):
-    plik = open("witajka","r")
-    tbl = plik.read()
-    tbl = tbl.split('\n')
-    tbl = tbl[0:len(tbl)-1]
-    ran = random.randint(0,len(tbl)-1)
-    
-    say(tbl[ran].replace('nick',nick))
-    print 'ggggggggggggggggggg'
+plugins = load_plugins()
+bot_socket = connect()
 
-
+i = 0
 while 1:
-#nie ruszac: magia :D====================================
-    readbuffer=readbuffer+s.recv(1024)
-    temp=string.split(readbuffer, "\n")
-    readbuffer=temp.pop( )
-    
-    for line in temp:
-	if(i<100):
-		i=i+1
-        line=string.rstrip(line)
-        line=string.split(line)
-	sss = ""
-
-	if(len(line) > 3):
-		tm=line[0]
-		g=1
-		nic=''
-		while((g>len(tm))or(tm[g]!='!')):
-			nic=nic+ tm[g]
-			g+=1
-			if(g==len(tm)):
-				break
-		a=3
-		while(len(line)!=a):
-			sss=sss +' ' + line[a]
-			a=a+1
-#========================================================
-#	print nic +' : '+ sss + '\n'
-        print string.join(line) +'\n'
-        
-        log(string.join(line) +'\n')
-        
-        if(line[0]=="PING"):
-            s.send("PONG %s\r\n" % line[1])
-	if (i==40):
-		s.send("JOIN "+KANAL+"\r\n")
-
-	if (sss == ' :muk!'):
-		say("muk, muk! ^^")
-	
-        if (sss == ' :!kop'):
-		k='KICK '+KANAL+' :'+ nic+'\r\n'
-		s.send(k)
-		
-	if (line[1]=='KICK'):
-		s.send("JOIN "+KANAL+"\r\n")
-
-	if (sss == " :!cycat"):
-            say(urllib2.urlopen('http://quote.mdoff.net/?a=r').read())
-
-	if ((sss[0:8] ==" :!cycat") and (len(sss) > 10)):
-            urllib2.urlopen('http://quote.mdoff.net/?a=a&b=' + sss[9:].replace(' ', '%20'))
-            say("muk dodal cycat panie ^^")
-
-	if (sss==' :!ping'):
-            say("muk, mu.. ee.. pong! ^^\"")
-
-        if (sss==' :!uptime'):
-            say(os.popen('uptime').read())
-
-        if (sss==' :!sru'):
-            if (not(random.randint(0, 5))):
-                k='KICK '+KANAL+' :'+ nic+'\r\n'
-                say("jebut!")
-                s.send(k)
-            else:
-                say("klik...")
-
-        if ( sss==' :muk?'):
-            say("muk, muk? >.<")
-
-        if ( sss==' :muk.'):
-            say("muk, to brzmi dumnie.")
-
-        if ( sss==' :!reg'):
-            s.send("PRIVMSG NickServ : IDENTIFY "+haslo+"\r\n")
-            
-        if (sss == " :!bash"):
-            say(bash())
-        
-        if (sss[0:5] == " :!8b"):
-            if(len(sss) < 8 ):
-                   say('What\'s your question?')
-            else:
-                   say(ball())
-        
-
-        try: 
-            namesss = string.join(line).split("!")[0][1:]
-            if (string.join(line).split(' ')[1] == 'JOIN' and namesss != NICK ):
-                witka(namesss)
-
-        except:
-            pass
-        ii = 0
-        cc = 0
-        gg = 0
-#        print len(sss)
-        while(len(sss) > ii):
-            
-            if(sss[ii:ii+7]=='http://'):
-                cc = ii
-                gg = ii
-                while((cc < len(sss)) and not(sss[cc] == ' ')):
-                          cc = cc+1
-                if not(sss[gg:gg+17] == 'http://www.ircnet'):
-                    say(urllib2.urlopen('http://api.mrte.ch/go.php?action=shorturl&url='+sss[gg:cc]+'&format=text').read())
-                print sss[gg:cc]
-            
-            ii = ii + 1
-
+  readbuffer=bot_socket.recv(2048)
+  buffer2 = readbuffer.decode("utf-8")
+  temp=buffer2.split("\r\n")
+  a=3
+  for line in temp:
+    if(i<100):
+      i=i+1
+    if (i==40):
+      send = "JOIN "+CHANNEL+"\r\n"
+      bot_socket.send(send.encode("utf-8"))
+    print(line)
+    for plug in plugins:
+      try:
+        plug.receive(line, bot_socket)
+      except:
+        print('ERROR in running plugins')
