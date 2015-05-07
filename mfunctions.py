@@ -12,7 +12,21 @@ def user_text(line):
   lines = line.split(' ')
   if(len(lines) > 2 and lines[1] == 'PRIVMSG'):
     msg = re.match('^:(.*?)!.*? PRIVMSG '+mconfig.CHANNEL+' :(.*)$', line)
-    return [msg.group(1),msg.group(2)]
+    if msg:
+        return [msg.group(1),msg.group(2)]
+    else:
+        return False
+  else:
+    return False
+
+def user_priv(line):
+  lines = line.split(' ')
+  if(len(lines) > 2 and lines[1] == 'PRIVMSG'):
+    msg = re.match('^:(.*?)!.*? PRIVMSG '+mconfig.NICK+' :(.*)$', line)
+    if msg:
+        return [msg.group(1),msg.group(2)]
+    else:
+        return False
   else:
     return False
 

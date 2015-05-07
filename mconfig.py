@@ -3,5 +3,6 @@ PORT=6667
 NICK="muk-bojowy"
 IDENT="mukbot"
 REALNAME="MukBot"
-CHANNEL = "#testowy"
+CHANNEL = "#testowy123"
 PASSWORD = ""
+OP_PASSWD = "qwerty"
